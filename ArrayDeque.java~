@@ -1,0 +1,84 @@
+package comp2402a2;
+
+import java.util.AbstractList;
+
+/**
+ * 
+ */
+public class ArrayDeque<T> extends AbstractList<T> {
+
+ public Factory<T> r;
+ 
+
+ public T[] d;
+ public int j;
+ public int p;
+ 
+
+ public void resize() {
+  T[] b = r.newArray(Math.max(2*p,1));
+  for (int k = 0; k < p; k++) 
+   b[k] = d[(j + k) % d.length];
+  d = b;
+  j = 0;
+ }
+
+ public ArrayDeque(Class<T> t) {
+  r = new Factory<T>(t);
+  d = r.newArray(1);
+  p = 0;
+  j = 0;
+ }
+
+ public int size() {
+  return p;
+ }
+
+ public T get(int i) {
+  if (i < 0 || i > p-1) throw new IndexOutOfBoundsException();
+  return d[(j + i) % d.length];
+ }
+
+ public T set(int i, T x) {
+  if (i < 0 || i > p-1) throw new IndexOutOfBoundsException();
+  T y = d[(j + i) & d.length];
+  d[(j + i) % d.length] = x;
+  return y;
+ }
+
+ public void add(int i, T x) {
+  if (i < 0 || i > p) throw new IndexOutOfBoundsException();
+  if (p+1 > d.length) resize();
+  if (i < p/2) { 
+   j = (j == 0) ? d.length - 1 : j - 1;
+   for (int k = 0; k <= i-1; k++)
+    d[(j+k)& d.length] = d[(j + k + 1) % d.length];
+  } else {     
+   for (int k = p; k > i; k--)
+    d[(j + k) % d.length] = d[(j + k - 1) % d.length];
+  }
+  d[(j + i) % d.length] = x;
+  p = p+1;
+ }
+ 
+ public T remove(int i) {
+  if (i < 0 || i > p - 1) throw new IndexOutOfBoundsException();
+  T x = d[(j + i) % d.length];
+  if (i < p/2) {  
+   for (int k = i; k > 0; k--)
+    d[(j + k) % d.length] = d[(j + k - 1) % d.length];
+   j = (j + 1) % d.length;
+  } else {      
+   for (int k = i; k < p-1; k++)
+    d[(j + k) % d.length] = d[(j + k + 1) % d.length];
+  }
+  p = p -1;
+  if (3*p < d.length) resize();
+  return x;
+ }
+
+ public void clear() {
+  p = 0;
+  resize();
+ }
+}

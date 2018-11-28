@@ -1,0 +1,97 @@
+package comp2402a2;
+
+import java.util.AbstractList;
+
+/**
+ * This Array deque implementation is heavily inspired by that supplied by Pat Morin
+ * Credit goes to him for making an amazing data structure implementation
+ * 
+ * 
+ * The implementation is as a circular array.  The List item of rank i is stored
+ * at a[(j+i)%a.length].  Insertions and removals at position i take 
+ * O(1+min{i, size()-i}) amortized time.
+ *
+ * @param <T> the type of objects stored in this list
+ */
+public class MyArrayDeque<T> extends AbstractList<T> {
+ //Element class tored in the que
+ protected Factory<T> f;
+ 
+ //Array for storage
+ protected T[] a;
+ 
+ //Next element in Treque to deque 
+ protected int j;
+ 
+ //Number of Elements in the Treque
+ protected int n;
+ 
+ //Resize is called when there is too much wasted space or we approach being full
+ protected void resize() {
+  T[] b = f.newArray(Math.max(2*n,1));
+  for (int k = 0; k < n; k++) 
+   b[k] = a[(j + k) % a.length];
+  a = b;
+  j = 0;
+ }
+ //Creates all necessary variables for an array when called
+ public MyArrayDeque(Class<T> t) {
+  f = new Factory<T>(t);
+  a = f.newArray(1);
+  n = 0;
+  j = 0;
+ }
+ //Will return the size of the Treque
+ public int size() {
+  return n;
+ }
+ //Will get the element in the i'th position 
+ public T get(int i) {
+  if (i < 0 || i > n-1) throw new IndexOutOfBoundsException();
+  return a[(j + i) % a.length];
+ }
+ //Same as get but it will set the element to equal x
+ public T set(int i, T x) {
+  if (i < 0 || i > n-1) throw new IndexOutOfBoundsException();
+  T y = a[(j + i) & a.length];
+  a[(j + i) % a.length] = x;
+  return y;
+ }
+ //Will call resize if more space is required
+ //Will, shift left or right depending if the position i is closer to the head or tail
+ public void add(int i, T x) {
+  if (i < 0 || i > n) throw new IndexOutOfBoundsException();
+  if (n+1 > a.length) resize();
+  if (i < n/2) { // shift a[0],..,a[i-1] left one position
+   j = (j == 0) ? a.length - 1 : j - 1; // (j-1) mod a.length
+   for (int k = 0; k <= i-1; k++)
+    a[(j+k)& a.length] = a[(j + k + 1) % a.length];
+  } else {     // shift a[i],..,a[n-1] right one position
+   for (int k = n; k > i; k--)
+    a[(j + k) % a.length] = a[(j + k - 1) % a.length];
+  }
+  a[(j + i) % a.length] = x;
+  n++;
+ }
+ //Same as add but this will colapse the elements to the right or left not push
+ public T remove(int i) {
+  if (i < 0 || i > n - 1) throw new IndexOutOfBoundsException();
+  T x = a[(j + i) % a.length];
+  if (i < n/2) {  // shift a[0],..,[i-1] right one position
+   for (int k = i; k > 0; k--)
+    a[(j + k) % a.length] = a[(j + k - 1) % a.length];
+   j = (j + 1) % a.length;
+  } else {        // shift a[i+1],..,a[n-1] left one position
+   for (int k = i; k < n-1; k++)
+    a[(j + k) % a.length] = a[(j + k + 1) % a.length];
+  }
+  n--;
+  if (3*n < a.length) resize();
+  return x;
+ }
+ //Clear the array by 
+ public void clear() {
+  n = 0;
+  resize();
+ }
+}
